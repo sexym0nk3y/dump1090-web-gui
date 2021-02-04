@@ -179,12 +179,12 @@ function fetchData() {
                         var plane = PlanesOrdered[i];
                         plane.updateTick(now, LastReceiverTimestamp);
                 }
-                
+
 		selectNewPlanes();
 		refreshTableInfo();
 		refreshSelected();
 		refreshHighlighted();
-                
+
                 if (ReceiverClock) {
                         var rcv = new Date(now * 1000);
                         ReceiverClock.render(rcv.getUTCHours(),rcv.getUTCMinutes(),rcv.getUTCSeconds());
@@ -197,7 +197,7 @@ function fetchData() {
                                 $("#update_error_detail").text("The data from dump1090 hasn't been updated in a while. Maybe dump1090 is no longer running?");
                                 $("#update_error").css('display','block');
                         }
-                } else { 
+                } else {
                         StaleReceiverCount = 0;
                         LastReceiverTimestamp = now;
                         $("#update_error").css('display','none');
@@ -250,7 +250,7 @@ function initialize() {
 				SelectedPlane = null;
 				selectedPlane.selected = null;
 				selectedPlane.clearLines();
-				selectedPlane.updateMarker();         
+				selectedPlane.updateMarker();
 				refreshSelected();
 				refreshHighlighted();
 				$('#selected_infoblock').hide();
@@ -264,7 +264,7 @@ function initialize() {
 		// look at the window resize to resize the pop-up infoblock so it doesn't float off the bottom or go off the top
 		$(window).on('resize', function() {
 			var topCalc = ($(window).height() - $('#selected_infoblock').height() - 60);
-			// check if the top will be less than zero, which will be overlapping/off the screen, and set the top correctly. 
+			// check if the top will be less than zero, which will be overlapping/off the screen, and set the top correctly.
 			if (topCalc < 0) {
 				topCalc = 0;
 				$('#selected_infoblock').css('height', ($(window).height() - 60) +'px');
@@ -272,7 +272,7 @@ function initialize() {
 			$('#selected_infoblock').css('top', topCalc + 'px');
 		});
 
-		// to make the infoblock responsive 
+		// to make the infoblock responsive
 		$('#sidebar_container').on('resize', function() {
 			if ($('#sidebar_container').width() < 500) {
 				$('#selected_infoblock').addClass('infoblock-container-small');
@@ -280,7 +280,7 @@ function initialize() {
 				$('#selected_infoblock').removeClass('infoblock-container-small');
 			}
 		});
-	
+
         // Set up event handlers for buttons
         $("#toggle_sidebar_button").click(toggleSidebarVisibility);
         $("#expand_sidebar_button").click(expandSidebar);
@@ -300,7 +300,7 @@ function initialize() {
             errorPlacement: function(error, element) {
                 return true;
             },
-            
+
             rules: {
                 minAltitude: {
                     number: true,
@@ -405,7 +405,7 @@ function initialize() {
                                 DefaultCenterLat = data.lat;
                                 DefaultCenterLon = data.lon;
                         }
-                        
+
                         Dump1090Version = data.version;
                         RefreshInterval = data.refresh;
                         PositionHistorySize = data.history;
@@ -554,7 +554,7 @@ function applyUrlQueryStrings() {
             break;
         }
     }
-    
+
     if (needReset) {
         resetMap();
     }
@@ -808,7 +808,7 @@ function initialize_map() {
                         }
                 }
         });
-    
+
         OLMap.getView().on('change:resolution', function(event) {
                 ZoomLvl = localStorage['ZoomLvl']  = OLMap.getView().getZoom();
                 for (var plane in Planes) {
@@ -968,7 +968,7 @@ function initialize_map() {
 function createSiteCircleFeatures() {
     // Clear existing circles first
     SiteCircleFeatures.forEach(function(circleFeature) {
-       StaticFeatures.remove(circleFeature); 
+       StaticFeatures.remove(circleFeature);
     });
     SiteCircleFeatures.clear();
 
@@ -1016,7 +1016,7 @@ function reaper() {
         for (var i = 0; i < PlanesOrdered.length; ++i) {
                 var plane = PlanesOrdered[i];
                 if (plane.seen > 300) {
-                        // Reap it.                                
+                        // Reap it.
                         plane.tr.parentNode.removeChild(plane.tr);
                         plane.tr = null;
                         delete Planes[plane.icao];
@@ -1066,12 +1066,12 @@ function refreshSelected() {
         }
 
 	refreshPageTitle();
-       
+
         var selected = false;
 	if (typeof SelectedPlane !== 'undefined' && SelectedPlane != "ICAO" && SelectedPlane != null) {
     	        selected = Planes[SelectedPlane];
         }
-        
+
         $('#dump1090_infoblock').css('display','block');
         $('#dump1090_version').text(Dump1090Version);
         $('#dump1090_total_ac').text(TrackedAircraft);
@@ -1089,13 +1089,35 @@ function refreshSelected() {
         if (!selected) {
                 return;
         }
-      
+
         if (selected.flight !== null && selected.flight !== "") {
                 $('#selected_callsign').text(selected.flight);
         } else {
                 $('#selected_callsign').text('n/a');
         }
         $('#selected_flightaware_link').html(getFlightAwareModeSLink(selected.icao, selected.flight, "Visit Flight Page"));
+
+        $('#selected_flight-aware_link').attr('href','//flightaware.com/live/modes/'+selected.icao+'/redirect');
+
+        if (selected.flight !== null && selected.flight !== "") {
+            $('#selected_fr24_link , #selected_flightstats_link, #selected_planefinder_link ').css('display', 'inline');
+            $('#selected_fr24_link').attr('href','https://fr24.com/'+selected.flight);
+            $('#selected_flightstats_link').attr('href','https://www.flightstats.com/go/FlightStatus/flightStatusByFlight.do?flightNumber='+selected.flight);
+            $('#selected_planefinder_link').attr('href','https://planefinder.net/flight/'+selected.flight);
+
+            let airlinesImgUrl = document.location.href+'airlines/'+selected.flight.substring(0,3)+'.png';
+            $.ajax({
+                url: airlinesImgUrl,
+                type: "HEAD",
+                success: function (){
+                    $('#selected_airlines_logo').attr('src', airlinesImgUrl);
+                }
+            });
+
+        } else {
+            $('#selected_fr24_link , #selected_flightstats_link, #selected_planefinder_link ').css('display', 'none');
+            $('#selected_airlines_logo').attr('src', '');
+        }
 
         if (selected.registration !== null) {
                 $('#selected_registration').text(selected.registration);
@@ -1127,7 +1149,7 @@ function refreshSelected() {
         } else {
                 $('#selected_squawk').text(selected.squawk);
         }
-	
+
 		$('#selected_speed').text(format_speed_long(selected.gs, DisplayUnits));
 		$('#selected_ias').text(format_speed_long(selected.ias, DisplayUnits));
 		$('#selected_tas').text(format_speed_long(selected.tas, DisplayUnits));
@@ -1186,7 +1208,7 @@ function refreshSelected() {
         $('#selected_rssi').text(selected.rssi.toFixed(1) + ' dBFS');
         $('#selected_message_count').text(selected.messages);
 		$('#selected_photo_link').html(getFlightAwarePhotoLink(selected.registration));
-		
+
 		$('#selected_altitude_geom').text(format_altitude_long(selected.alt_geom, selected.geom_rate, DisplayUnits));
         $('#selected_mag_heading').text(format_track_long(selected.mag_heading));
         $('#selected_true_heading').text(format_track_long(selected.true_heading));
@@ -1250,7 +1272,7 @@ function refreshSelected() {
 			} else if (selected.sil_type == "persample") {
 				sampleRate = " per sample";
 			}
-			
+
 			switch (selected.sil) {
 				case 0:
 					silDesc = "&gt; 1×10<sup>-3</sup>";
@@ -1412,11 +1434,11 @@ function refreshTableInfo() {
 
 		if (tableplane.icao == SelectedPlane)
             classes += " selected";
-                    
+
         if (tableplane.squawk in SpecialSquawks) {
             classes = classes + " " + SpecialSquawks[tableplane.squawk].cssClass;
             show_squawk_warning = true;
-		}			                
+		}
 
         // ICAO doesn't change
         if (tableplane.flight) {
@@ -1523,7 +1545,7 @@ function resortTable() {
         }
 
         PlanesOrdered.sort(sortFunction);
-        
+
         var tbody = document.getElementById('tableinfo').tBodies[0];
         for (var i = 0; i < PlanesOrdered.length; ++i) {
                 tbody.appendChild(PlanesOrdered[i].tr);
@@ -1579,7 +1601,7 @@ function selectPlaneByHex(hex,autofollow) {
 		Planes[SelectedPlane].updateLines();
 		Planes[SelectedPlane].updateMarker();
 	    $(Planes[SelectedPlane].tr).addClass("selected");
-	} else { 
+	} else {
 		SelectedPlane = null;
 	}
 
@@ -1589,7 +1611,7 @@ function selectPlaneByHex(hex,autofollow) {
 			OLMap.getView().setZoom(8);
 	} else {
 		FollowSelected = false;
-	} 
+	}
 
 	refreshSelected();
 	refreshHighlighted();
@@ -1731,7 +1753,7 @@ function resetMap() {
         // Set and refresh
         OLMap.getView().setZoom(ZoomLvl);
 	OLMap.getView().setCenter(ol.proj.fromLonLat([CenterLon, CenterLat]));
-	
+
 	selectPlaneByHex(null,false);
 }
 
@@ -1774,7 +1796,7 @@ function showMap() {
     $("#sidebar_container").width("470px");
     setColumnVisibility();
     setSelectedInfoBlockVisibility();
-    updateMapSize();    
+    updateMapSize();
 }
 
 function showColumn(table, columnId, visible) {
@@ -1862,7 +1884,7 @@ function adjustSelectedInfoBlockPosition() {
         var marker = selectedPlane.marker;
         var markerCoordinates = selectedPlane.marker.getGeometry().getCoordinates();
 		var markerPosition = OLMap.getPixelFromCoordinate(markerCoordinates);
-		
+
         // Get map size
         var mapCanvas = $('#map_canvas');
         var mapExtent = getExtent(0, 0, mapCanvas.width(), mapCanvas.height());
@@ -1887,7 +1909,7 @@ function adjustSelectedInfoBlockPosition() {
                 }
             }
         }
-    } 
+    }
     catch(e) { }
 }
 
@@ -1971,7 +1993,7 @@ function onFilterByAltitude(e) {
         SelectedPlane = null;
         selectedPlane.selected = false;
         selectedPlane.clearLines();
-        selectedPlane.updateMarker();         
+        selectedPlane.updateMarker();
         refreshSelected();
         refreshHighlighted();
     }
@@ -2100,7 +2122,7 @@ function getFlightAwarePhotoLink(registration) {
         return "<a target=\"_blank\" href=\"https://flightaware.com/photos/aircraft/" + registration.replace(/[^0-9a-z]/ig,'') + "\">See Photos</a>";
     }
 
-    return "";   
+    return "";
 }
 
 function getAirframesModeSLink(code) {
@@ -2108,7 +2130,7 @@ function getAirframesModeSLink(code) {
         return "<a href=\"http://www.airframes.org/\" onclick=\"$('#airframes_post_icao').attr('value','" + code + "'); document.getElementById('horrible_hack').submit.call(document.getElementById('airframes_post')); return false;\">Airframes.org: " + code.toUpperCase() + "</a>";
     }
 
-    return "";   
+    return "";
 }
 
 
@@ -2167,7 +2189,7 @@ function updatePiAwareOrFlightFeeder() {
 
 // Function to hide banner (ex. for a kiosk to show maximum data possible)
 function hideBanner() {
-    document.getElementById("header").style.display = 'none'; 
+    document.getElementById("header").style.display = 'none';
     document.getElementById("layout_container").style.height = '100%';
     updateMapSize();
 }
