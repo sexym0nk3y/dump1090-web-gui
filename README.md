@@ -3,5 +3,5 @@
 Based on dump1090-fa
 
 ## Changes
-- Add airlines logo
+- Over 900 airline logos
 - Add fr24, planefinder, flightstats links
