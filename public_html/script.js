@@ -1094,6 +1094,7 @@ function refreshSelected() {
                 $('#selected_callsign').text(selected.flight);
         } else {
                 $('#selected_callsign').text('n/a');
+                $('#selected_airlines_logo').attr('src', '');
         }
         $('#selected_flightaware_link').html(getFlightAwareModeSLink(selected.icao, selected.flight, "Visit Flight Page"));
 
@@ -1109,6 +1110,9 @@ function refreshSelected() {
             $.ajax({
                 url: airlinesImgUrl,
                 type: "HEAD",
+                error: function(){
+                    $('#selected_airlines_logo').attr('src', '');
+                },
                 success: function (){
                     $('#selected_airlines_logo').attr('src', airlinesImgUrl);
                 }
