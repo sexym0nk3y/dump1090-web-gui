@@ -21,6 +21,8 @@ html, body {
 #selected_airlines_logo{
     max-height: 30px;
     padding-left: 10px;
+    max-width: 100px;
+    vertical-align: middle;
 }
 
 .infoblock-container {
